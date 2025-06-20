@@ -7,9 +7,6 @@ const path = require('path')
 const { Pool } = require("pg")
 const PORT = 3000
 const cors = require('cors')
-const { Try } = require('@mui/icons-material')
-const { log } = require('console')
-const { send } = require('vite')
 app.use(cors())
 
 app.use(express.json());
