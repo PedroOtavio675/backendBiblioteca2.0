@@ -21,21 +21,13 @@ cloudinary.config({
 
 
 //dados do banco de dados
-const pool = new Pool(
-  process.env.DATABASE_URL
-    ? {
-        connectionString: process.env.DATABASE_URL,
-        ssl: { rejectUnauthorized: false }, // necessário para Railway
-      }
-    : {
-        host: process.env.DB_HOST,
-        port: process.env.DB_PORT,
-        user: process.env.DB_USER,
-        password: process.env.DB_PASSWORD,
-        database: process.env.DB_NAME,
-        ssl: { rejectUnauthorized: false }  // SSL tbm aqui se usar variáveis separadas
-      }
-);
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false,
+  },
+});
+
 pool.connect()
   .then(() => console.log("Conectado ao banco de dados com sucesso"))
   .catch(err => console.error("Erro ao conectar ao banco:", err));
