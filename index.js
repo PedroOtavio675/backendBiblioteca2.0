@@ -25,7 +25,7 @@ const pool = new Pool(
   process.env.DATABASE_URL
     ? {
         connectionString: process.env.DATABASE_URL,
-        ssl: { rejectUnauthorized: false },
+        ssl: { rejectUnauthorized: false }, // necessário para Railway
       }
     : {
         host: process.env.DB_HOST,
@@ -33,6 +33,7 @@ const pool = new Pool(
         user: process.env.DB_USER,
         password: process.env.DB_PASSWORD,
         database: process.env.DB_NAME,
+        ssl: { rejectUnauthorized: false }  // SSL tbm aqui se usar variáveis separadas
       }
 );
 pool.connect()
