@@ -1,4 +1,5 @@
-
+const cloudinary = require("cloudinary").v2;
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const express = require('express')
 const app = express()
 const bcrypt = require('bcrypt')
@@ -8,27 +9,38 @@ const { Pool } = require("pg")
 const PORT = 3000
 const cors = require('cors')
 app.use(cors())
+require("dotenv").config();
 
 app.use(express.json());
 
+cloudinary.config({
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.CLOUD_KEY,
+  api_secret: process.env.CLOUD_SECRET,
+});
 
 
 //dados do banco de dados
 const pool = new Pool({
-    user:'postgres',
-    host:'localhost',
-    database:'postgres',
-    password:'admin',
-    port:5432,
+  host: process.env.DB_HOST,
+  port: process.env.DB_PORT,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+    ssl: process.env.DB_SSL === "true" ? { rejectUnauthorized: false } : false,
 })
+pool.connect()
+  .then(() => console.log("Conectado ao banco de dados com sucesso"))
+  .catch(err => console.error("Erro ao conectar ao banco:", err));
+
 // Configuração do multer para upload de arquivos
-const storage = multer.diskStorage({
-    destination: "uploads/",
-    filename:(req,file,cb)=>{
-        const uniqueName = Date.now() + "-" + file.originalname
-        cb(null, uniqueName)
-    }
-})
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: "livros", // pasta no Cloudinary
+    allowed_formats: ["jpg", "jpeg", "png"],
+  },
+});
 
 const upload = multer({ storage })
 
@@ -39,13 +51,13 @@ app.post('/InserirLivros', upload.single("imagem"), async (req, res)=>{
    try{
 
     const { isbn, titulo, autor } = req.body
-    const imagemUp = req.file ? "uploads/" + req.file.filename : null
+    const imageUrl = req.file.path; // URL gerada pelo Cloudinary
 
    const result = await  pool.query(`
         INSERT INTO livros (isbn, caminho_capa, titulo_livro, autor_livro)
         VALUES ($1, $2, $3, $4)
         RETURNING id;
-        `,[isbn, imagemUp, titulo, autor])
+        `,[isbn, imageUrl, titulo, autor])
 
         const idNovo = result.rows[0].id
 
@@ -61,8 +73,6 @@ app.post('/InserirLivros', upload.single("imagem"), async (req, res)=>{
    }
 })
 
-
-app.use("/uploads", express.static(path.join(__dirname, "uploads")))
 
 // Rota para listar livros
 app.get("/livrosDoBanco", async (req, res)=>{
