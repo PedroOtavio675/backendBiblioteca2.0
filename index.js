@@ -54,14 +54,14 @@ app.post('/InserirLivros', upload.single("imagem"), async (req, res)=>{
 
    try{
 
-    const { isbn, titulo, autor } = req.body
+    const { isbn, titulo, autor, genero } = req.body
     const imageUrl = req.file.path; // URL gerada pelo Cloudinary
 
    const result = await  pool.query(`
-        INSERT INTO livros (isbn, caminho_capa, titulo_livro, autor_livro)
-        VALUES ($1, $2, $3, $4)
+        INSERT INTO livros (isbn, caminho_capa, titulo_livro, autor_livro, genero_livro)
+        VALUES ($1, $2, $3, $4, $5)
         RETURNING id;
-        `,[isbn, imageUrl, titulo, autor])
+        `,[isbn, imageUrl, titulo, autor, genero])
 
         const idNovo = result.rows[0].id
 
